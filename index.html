@@ -127,6 +127,7 @@ tr:hover{background:#f8fafd}
       <div class="chart-card"><h3>单位欠款 TOP10</h3><div class="chart" id="cCompany"></div></div>
       <div class="chart-card full"><h3>账龄分析（按区域 / 分公司汇总）</h3>
         <div class="chart chart-sm" id="cAgeChart"></div>
+        <div class="quickbar" id="ageColBar"></div>
         <div class="tbl-wrap" id="ageTable"></div>
       </div>
       <div class="chart-card full"><h3>月度欠款汇总（单位：万元 · 2026年8月）</h3>
@@ -218,8 +219,21 @@ function renderCharts(){
       label:{show:true,position:'top',formatter:p=>FM(p.value)}}]
   });
 }
+const AGE_ORDER=['0-30','31-60','61-90','91-180','181-360','361以上'];
+let ageColShow={};AGE_ORDER.forEach(s=>ageColShow[s]=true);ageColShow['合计']=true;
+function renderAgeColBtns(){
+  const el=document.getElementById('ageColBar');
+  if(!el)return;
+  const items=AGE_ORDER.concat(['合计']);
+  el.innerHTML='查看列：'+items.map(s=>{
+    const lbl=s==='合计'?'合计':s+'天';
+    return '<button class="qbtn'+(ageColShow[s]?' active':'')+'" onclick="toggleAgeCol(\''+s+'\')">'+lbl+'</button>';
+  }).join('');
+}
+function toggleAgeCol(s){ageColShow[s]=!ageColShow[s];renderAgeColBtns();renderAgeTable();}
 function renderAgeTable(){
-  const order=['0-30','31-60','61-90','91-180','181-360','361以上'];
+  const order=AGE_ORDER.filter(s=>ageColShow[s]);
+  const showTotal=ageColShow['合计'];
   const el=document.getElementById('ageTable');
   if(!filtered.length){el.innerHTML='<div class="empty">暂无数据</div>';return;}
   const rmap={};
@@ -232,13 +246,13 @@ function renderAgeTable(){
   const rows=Object.values(rmap).sort((a,b)=>a.区域.localeCompare(b.区域)||a.分公司.localeCompare(b.分公司));
   const colTotal={};order.forEach(s=>colTotal[s]=0);
   let grand=0;
-  let h='<table><thead><tr><th>区域</th><th>分公司</th>'+order.map(s=>'<th>'+s+'天</th>').join('')+'<th>合计</th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>区域</th><th>分公司</th>'+order.map(s=>'<th>'+s+'天</th>').join('')+(showTotal?'<th>合计</th>':'')+'</tr></thead><tbody>';
   rows.forEach(r=>{
     let row='<tr><td>'+r.区域+'</td><td>'+r.分公司+'</td>';let t=0;
     order.forEach(s=>{const v=r.segs[s]||0;t+=v;colTotal[s]+=v;row+='<td>'+FMT.format(v)+'</td>';});
-    grand+=t;row+='<td><b>'+FMT.format(t)+'</b></td></tr>';h+=row;
+    grand+=t;if(showTotal)row+='<td><b>'+FMT.format(t)+'</b></td>';row+='</tr>';h+=row;
   });
-  h+='<tr style="background:#f0f4fb"><td><b>合计</b></td><td></td>'+order.map(s=>'<td><b>'+FMT.format(colTotal[s])+'</b></td>').join('')+'<td><b>'+FMT.format(grand)+'</b></td></tr>';
+  h+='<tr style="background:#f0f4fb"><td><b>合计</b></td><td></td>'+order.map(s=>'<td><b>'+FMT.format(colTotal[s])+'</b></td>').join('')+(showTotal?'<td><b>'+FMT.format(grand)+'</b></td>':'')+'</tr>';
   el.innerHTML=h+'</tbody></table>';
 }
 function renderMonthly(){
@@ -316,7 +330,7 @@ function setQuick(q){
   document.getElementById('fAge').value=filters.age;
   page=1;refresh();
 }
-function refresh(){applyFilter();renderKPIs();renderCharts();renderAgeTable();renderMonthly();renderQuick();renderTable();}
+function refresh(){applyFilter();renderKPIs();renderCharts();renderAgeColBtns();renderAgeTable();renderMonthly();renderQuick();renderTable();}
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
   document.getElementById('tabOverview').classList.toggle('active',name==='overview');
