@@ -57,6 +57,10 @@ th,td{border-bottom:1px solid var(--border);padding:8px 10px;text-align:right;wh
 th{background:#f4f7fc;text-align:center;position:sticky;top:0}
 td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
 tr:hover{background:#f8fafd}
+.quickbar{margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.qbtn{height:30px;padding:0 14px;border:1px solid var(--border);border-radius:16px;background:#fff;cursor:pointer;font-size:13px;color:var(--text);transition:.2s}
+.qbtn:hover{background:#eef3fb}
+.qbtn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--muted)}
 .pager button{height:30px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer}
 .pager button:disabled{opacity:.4;cursor:not-allowed}
@@ -122,6 +126,7 @@ tr:hover{background:#f8fafd}
 
   <div class="table-card">
     <h3><span>欠款明细</span><span id="tblCount" style="font-size:12px;color:var(--muted)"></span></h3>
+    <div class="quickbar" id="quickBar"></div>
     <div class="tbl-wrap" id="tblWrap"></div>
     <div class="pager">
       <span id="pageInfo"></span>
@@ -147,9 +152,7 @@ function applyFilter(){
     if(filters.branch!=='全部'&&r.分公司!==filters.branch)return false;
     if(filters.category!=='全部'&&r.欠款类别!==filters.category)return false;
     if(filters.age!=='全部'){
-      const d=r.欠款天数;
-      const m={ '0-30天':d<=30,'31-60天':d>30&&d<=60,'61-90天':d>60&&d<=90,'91-180天':d>90&&d<=180,'180天以上':d>180}[filters.age];
-      if(!m)return false;
+      if((r.账龄段||'')!==filters.age)return false;
     }
     if(filters.recharge!=='全部'&&r.充值类型!==filters.recharge)return false;
     return true;
@@ -247,7 +250,7 @@ function renderMonthly(){
 }
 function renderTable(){
   const el=document.getElementById('tblWrap');
-  if(!filtered.length){el.innerHTML='<div class="empty">暂无符合条件的数据</div>';document.getElementById('pageInfo').textContent='0 条';return;}
+  if(!filtered.length){el.innerHTML='<div class="empty">暂无符合条件的数据</div>';document.getElementById('tblCount').textContent='共 0 条';document.getElementById('pageInfo').textContent='0 条';return;}
   const totalPages=Math.ceil(filtered.length/PER);
   if(page>totalPages)page=totalPages;
   const start=(page-1)*PER,end=Math.min(page*PER,filtered.length);
@@ -269,7 +272,7 @@ function initSelects(){
   const regs=uni(DATA.明细.map(r=>r.区域));
   fill('fRegion',regs);
   fill('fCategory',uni(DATA.明细.map(r=>r.欠款类别)));
-  fill('fAge',['0-30天','31-60天','61-90天','91-180天','180天以上']);
+  fill('fAge',['0-30','31-60','61-90','91-180','181-360','361以上']);
   fill('fRecharge',uni(DATA.明细.map(r=>r.充值类型)));
   const br=uni(DATA.明细.filter(r=>filters.region==='全部'||r.区域===filters.region).map(r=>r.分公司));
   fill('fBranch',br);
@@ -287,7 +290,20 @@ function bind(){
   document.getElementById('prevPage').onclick=()=>{if(page>1){page--;renderTable();}};
   document.getElementById('nextPage').onclick=()=>{page++;renderTable();};
 }
-function refresh(){applyFilter();renderKPIs();renderCharts();renderAgeTable();renderMonthly();renderTable();}
+function renderQuick(){
+  const QUICK=['全部','0-30','31-60','61-90','91-180','181-360','361以上'];
+  document.getElementById('quickBar').innerHTML='快速筛选账龄：'+QUICK.map(q=>{
+    const active=(q==='全部'&&filters.age==='全部')||(q!=='全部'&&filters.age===q);
+    const label=q==='全部'?'全部':q+'天';
+    return '<button class="qbtn'+(active?' active':'')+'" onclick="setQuick(\''+q+'\')">'+label+'</button>';
+  }).join('');
+}
+function setQuick(q){
+  filters.age=(q==='全部')?'全部':q;
+  document.getElementById('fAge').value=filters.age;
+  page=1;refresh();
+}
+function refresh(){applyFilter();renderKPIs();renderCharts();renderAgeTable();renderMonthly();renderQuick();renderTable();}
 window.addEventListener('resize',()=>{['cCompany','cAgeChart'].forEach(id=>{const c=echarts.getInstanceByDom(document.getElementById(id));if(c)c.resize();});});
 const PASSWORD='888';
 function unlock(){
