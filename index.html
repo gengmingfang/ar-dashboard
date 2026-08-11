@@ -42,6 +42,7 @@ body{font-family:'Noto Sans CJK SC','Microsoft YaHei',PingFang SC,sans-serif;bac
 .grid .full{grid-column:1/-1}
 .chart-card{background:var(--card);border-radius:12px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .chart-card h3{font-size:15px;margin-bottom:10px;padding-left:10px;border-left:3px solid var(--primary)}
+.chart-head{display:flex;justify-content:space-between;align-items:center}
 .chart{width:100%;height:320px}
 .chart.tall{height:360px}
 .chart-sm{height:280px}
@@ -125,9 +126,8 @@ tr:hover{background:#f8fafd}
     <div class="kpis" id="kpis"></div>
     <div class="grid">
       <div class="chart-card"><h3>单位欠款 TOP10</h3><div class="chart" id="cCompany"></div></div>
-      <div class="chart-card full"><h3>账龄分析（按区域 / 分公司汇总）</h3>
+      <div class="chart-card full"><h3 class="chart-head">账龄分析（按区域 / 分公司汇总）<button class="btn" id="ageToggle" onclick="toggleAgeDetail()">查看明细</button></h3>
         <div class="chart chart-sm" id="cAgeChart"></div>
-        <div style="margin-top:14px"><button class="btn" id="ageToggle" onclick="toggleAgeDetail()">查看明细</button></div>
         <div class="tbl-wrap" id="ageTable" style="display:none"></div>
       </div>
       <div class="chart-card full"><h3>月度欠款汇总（单位：万元 · 2026年8月）</h3>
