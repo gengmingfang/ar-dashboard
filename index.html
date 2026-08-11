@@ -249,7 +249,7 @@ function renderMonthly(){
   const order=['苏州二区','南通区域','苏北区域','安徽区域'];
   const regions=order.filter(rg=>rows.some(r=>r.区域===rg));
   let G={期初:0,回款:0,新增:0,期末:0};
-  let h='<table><thead><tr><th>区域</th><th>分公司</th><th>期初余额</th><th>开表实时月份<br>欠款回款</th><th>开表实时月份<br>新增欠款</th><th>开表实时月份<br>期末欠款余额(实际期末余额)</th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>区域</th><th>分公司</th><th>期初余额</th><th>2026年8月<br>欠款回款</th><th>2026年8月<br>新增欠款</th><th>2026年8月<br>期末欠款余额(实际期末余额)</th></tr></thead><tbody>';
   regions.forEach(rg=>{
     const sub=rows.filter(r=>r.区域===rg);
     let S={期初:0,回款:0,新增:0,期末:0};
