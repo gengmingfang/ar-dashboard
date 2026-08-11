@@ -57,6 +57,12 @@ th,td{border-bottom:1px solid var(--border);padding:8px 10px;text-align:right;wh
 th{background:#f4f7fc;text-align:center;position:sticky;top:0}
 td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
 tr:hover{background:#f8fafd}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--border)}
+.tab{padding:10px 24px;border:none;background:none;font-size:15px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:.2s}
+.tab:hover{color:var(--primary)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:700}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
 .quickbar{margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
 .qbtn{height:30px;padding:0 14px;border:1px solid var(--border);border-radius:16px;background:#fff;cursor:pointer;font-size:13px;color:var(--text);transition:.2s}
 .qbtn:hover{background:#eef3fb}
@@ -101,8 +107,10 @@ tr:hover{background:#f8fafd}
   <div class="date">统计日：2026-08-11</div>
 </div>
 <div class="wrap">
-
-  <div class="kpis" id="kpis"></div>
+  <div class="tabs">
+    <button class="tab active" data-tab="overview">看板概览</button>
+    <button class="tab" data-tab="detail">欠款明细</button>
+  </div>
 
   <div class="filters" id="filters">
     <div class="fgroup"><label>区域</label><select id="fRegion"></select></div>
@@ -113,25 +121,30 @@ tr:hover{background:#f8fafd}
     <button class="btn reset" id="btnReset">重置筛选</button>
   </div>
 
-  <div class="grid">
-    <div class="chart-card"><h3>单位欠款 TOP10</h3><div class="chart" id="cCompany"></div></div>
-    <div class="chart-card full"><h3>账龄分析（按区域 / 分公司汇总）</h3>
-      <div class="chart chart-sm" id="cAgeChart"></div>
-      <div class="tbl-wrap" id="ageTable"></div>
-    </div>
-    <div class="chart-card full"><h3>月度欠款汇总（单位：万元 · 2026年8月）</h3>
-      <div class="tbl-wrap" id="monthlyTable"></div>
+  <div id="tabOverview" class="tab-panel active">
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="chart-card"><h3>单位欠款 TOP10</h3><div class="chart" id="cCompany"></div></div>
+      <div class="chart-card full"><h3>账龄分析（按区域 / 分公司汇总）</h3>
+        <div class="chart chart-sm" id="cAgeChart"></div>
+        <div class="tbl-wrap" id="ageTable"></div>
+      </div>
+      <div class="chart-card full"><h3>月度欠款汇总（单位：万元 · 2026年8月）</h3>
+        <div class="tbl-wrap" id="monthlyTable"></div>
+      </div>
     </div>
   </div>
 
-  <div class="table-card">
-    <h3><span>欠款明细</span><span id="tblCount" style="font-size:12px;color:var(--muted)"></span></h3>
-    <div class="quickbar" id="quickBar"></div>
-    <div class="tbl-wrap" id="tblWrap"></div>
-    <div class="pager">
-      <span id="pageInfo"></span>
-      <button id="prevPage">上一页</button>
-      <button id="nextPage">下一页</button>
+  <div id="tabDetail" class="tab-panel">
+    <div class="table-card">
+      <h3><span>欠款明细</span><span id="tblCount" style="font-size:12px;color:var(--muted)"></span></h3>
+      <div class="quickbar" id="quickBar"></div>
+      <div class="tbl-wrap" id="tblWrap"></div>
+      <div class="pager">
+        <span id="pageInfo"></span>
+        <button id="prevPage">上一页</button>
+        <button id="nextPage">下一页</button>
+      </div>
     </div>
   </div>
 
@@ -304,6 +317,13 @@ function setQuick(q){
   page=1;refresh();
 }
 function refresh(){applyFilter();renderKPIs();renderCharts();renderAgeTable();renderMonthly();renderQuick();renderTable();}
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.getElementById('tabOverview').classList.toggle('active',name==='overview');
+  document.getElementById('tabDetail').classList.toggle('active',name==='detail');
+  setTimeout(()=>{['cCompany','cAgeChart'].forEach(id=>{const c=echarts.getInstanceByDom(document.getElementById(id));if(c)c.resize();});},120);
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));
 window.addEventListener('resize',()=>{['cCompany','cAgeChart'].forEach(id=>{const c=echarts.getInstanceByDom(document.getElementById(id));if(c)c.resize();});});
 const PASSWORD='888';
 function unlock(){
