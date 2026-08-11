@@ -107,9 +107,6 @@ tr:hover{background:#f8fafd}
   </div>
 
   <div class="grid">
-    <div class="chart-card"><h3>欠款类别构成</h3><div class="chart" id="cCategory"></div></div>
-    <div class="chart-card"><h3>账龄分布</h3><div class="chart" id="cAge"></div></div>
-    <div class="chart-card"><h3>分公司欠款 TOP10</h3><div class="chart" id="cBranch"></div></div>
     <div class="chart-card"><h3>单位欠款 TOP10</h3><div class="chart" id="cCompany"></div></div>
   </div>
 
@@ -170,38 +167,6 @@ function renderKPIs(){
   document.getElementById('kpis').innerHTML=arr.map(k=>`<div class="kpi ${k.cls}"><div class="lbl">${k.l}</div><div class="num">${k.v}</div><div class="ext">${k.e}</div></div>`).join('');
 }
 function renderCharts(){
-  // 类别
-  const cat=grpBy(filtered,'欠款类别','实际期末余额').sort((a,b)=>b.val-a.val).slice(0,8);
-  echarts.init(document.getElementById('cCategory'),null,{renderer:'canvas'}).setOption({
-    tooltip:{trigger:'item',formatter:p=>p.name+'<br>'+FM(p.value)+'（'+p.percent+'%）'},
-    legend:{type:'scroll',orient:'vertical',right:0,top:20,bottom:20,textStyle:{fontSize:11}},
-    series:[{type:'pie',radius:['35%','62%'],center:['38%','52%'],
-      data:cat.map(r=>({name:r.key,value:r.val})),label:{formatter:'{b}\n{d}%',fontSize:10}}]
-  });
-  // 账龄
-  const order=['0-30天','31-60天','61-90天','91-180天','180天以上'];
-  const age=grpBy(filtered,'账龄段','实际期末余额');
-  age.sort((a,b)=>order.indexOf(a.key)-order.indexOf(b.key));
-  const ageColor={'0-30天':'#2ca02c','31-60天':'#98df8a','61-90天':'#ffbb78','91-180天':'#ff9896','180天以上':'#d62728'};
-  echarts.init(document.getElementById('cAge'),null,{renderer:'canvas'}).setOption({
-    tooltip:{trigger:'axis',formatter:p=>p[0].name+'<br>金额：'+FM(p[0].value)+'　'+p[0].data.cnt+' 笔'},
-    grid:{left:10,right:10,top:30,bottom:30,containLabel:true},
-    xAxis:{type:'category',data:age.map(r=>r.key)},
-    yAxis:{type:'value',axisLabel:{formatter:v=>v/10000+'万'}},
-    series:[{type:'bar',data:age.map(r=>({value:r.val,cnt:r.cnt})),barWidth:'50%',
-      itemStyle:{color:p=>ageColor[age[p.dataIndex].key]},
-      label:{show:true,position:'top',formatter:p=>FM(p.value)}}]
-  });
-  // 分公司TOP10
-  const br=grpBy(filtered,'分公司','实际期末余额').sort((a,b)=>b.val-a.val).slice(0,10).reverse();
-  echarts.init(document.getElementById('cBranch'),null,{renderer:'canvas'}).setOption({
-    tooltip:{trigger:'axis',formatter:p=>p[0].name+'<br>'+FM(p[0].value)+'　'+p[0].data.cnt+' 笔'},
-    grid:{left:10,right:30,top:10,bottom:30,containLabel:true},
-    xAxis:{type:'value',axisLabel:{formatter:v=>v/10000+'万'}},
-    yAxis:{type:'category',data:br.map(r=>r.key)},
-    series:[{type:'bar',data:br.map(r=>({value:r.val,cnt:r.cnt})),barWidth:'55%',
-      itemStyle:{color:'#f58518'},label:{show:true,position:'right',formatter:p=>FM(p.value)}}]
-  });
   // 单位欠款TOP10
   const cp=grpBy(filtered,'单位名称','实际期末余额').sort((a,b)=>b.val-a.val).slice(0,10).reverse();
   echarts.init(document.getElementById('cCompany'),null,{renderer:'canvas'}).setOption({
@@ -256,7 +221,7 @@ function bind(){
   document.getElementById('nextPage').onclick=()=>{page++;renderTable();};
 }
 function refresh(){applyFilter();renderKPIs();renderCharts();renderTable();}
-window.addEventListener('resize',()=>{['cCategory','cAge','cBranch','cCompany'].forEach(id=>{const c=echarts.getInstanceByDom(document.getElementById(id));if(c)c.resize();});});
+window.addEventListener('resize',()=>{['cCompany'].forEach(id=>{const c=echarts.getInstanceByDom(document.getElementById(id));if(c)c.resize();});});
 const PASSWORD='888';
 function unlock(){
   const v=document.getElementById('pw').value;
