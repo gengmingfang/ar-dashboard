@@ -118,7 +118,7 @@ tr:hover{background:#f8fafd}
     <div class="fgroup"><label>分公司</label><select id="fBranch"></select></div>
     <div class="fgroup"><label>欠款类别</label><select id="fCategory"></select></div>
     <div class="fgroup"><label>账龄段</label><select id="fAge"></select></div>
-    <div class="fgroup"><label>充值类型</label><select id="fRecharge"></select></div>
+    <div class="fgroup"><label>充值类型</label><select id="fRecharge"></select></div><div class="fgroup"><label>业务类型</label><select id="fBiz"></select></div>
     <button class="btn reset" id="btnReset">重置筛选</button>
   </div>
 
@@ -157,7 +157,7 @@ const FMT = new Intl.NumberFormat('zh-CN',{maximumFractionDigits:2});
 const FM = v => (v/10000).toFixed(2)+'万';
 const PALETTE=['#4c78a8','#f58518','#54a24b','#e45756','#72b7b2','#b279a2','#ff9da6','#9d755d','#bab0ac','#58508d','#bc5090','#ff6361'];
 
-let filters={region:'全部',branch:'全部',category:'全部',age:'全部',recharge:'全部'};
+let filters={region:'全部',branch:'全部',category:'全部',age:'全部',recharge:'全部',biz:'全部'};
 let page=1,PER=15,filtered=[];
 
 function applyFilter(){
@@ -169,6 +169,7 @@ function applyFilter(){
       if((r.账龄段||'')!==filters.age)return false;
     }
     if(filters.recharge!=='全部'&&r.充值类型!==filters.recharge)return false;
+    if(filters.biz!=='全部'&&r.业务类型!==filters.biz)return false;
     return true;
   });
 }
@@ -279,11 +280,11 @@ function renderTable(){
   document.getElementById('pageInfo').textContent='第 '+page+' / '+totalPages+' 页';
   document.getElementById('prevPage').disabled=page<=1;
   document.getElementById('nextPage').disabled=page>=totalPages;
-  let h='<table><thead><tr><th>区域</th><th>分公司</th><th>销售员</th><th>欠款类别</th><th>充值类型</th><th>单位名称</th><th>激活日期</th><th>欠款天数</th><th>实际期末余额</th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>区域</th><th>分公司</th><th>销售员</th><th>业务类型</th><th>欠款类别</th><th>充值类型</th><th>单位名称</th><th>激活日期</th><th>欠款天数</th><th>实际期末余额</th></tr></thead><tbody>';
   rows.forEach(r=>{
     const d=r.欠款天数;
     const badge=d>90?'<span class="badge red">'+d+'天</span>':(d>60?'<span class="badge yellow">'+d+'天</span>':'<span class="badge green">'+d+'天</span>');
-    h+=`<tr><td>${r.区域}</td><td>${r.分公司}</td><td>${r.销售员}</td><td>${r.欠款类别}</td><td>${r.充值类型}</td><td title="${r.单位名称||''}">${(r.单位名称||'').length>12?(r.单位名称||'').slice(0,12)+'…':(r.单位名称||'')}</td><td>${r.激活日期}</td><td>${badge}</td><td>${FMT.format(r.实际期末余额)}</td></tr>`;
+    h+=`<tr><td>${r.区域}</td><td>${r.分公司}</td><td>${r.销售员}</td><td>${r.业务类型}</td><td>${r.欠款类别}</td><td>${r.充值类型}</td><td title="${r.单位名称||''}">${(r.单位名称||'').length>12?(r.单位名称||'').slice(0,12)+'…':(r.单位名称||'')}</td><td>${r.激活日期}</td><td>${badge}</td><td>${FMT.format(r.实际期末余额)}</td></tr>`;
   });
   el.innerHTML=h+'</tbody></table>';
 }
@@ -294,6 +295,7 @@ function initSelects(){
   fill('fCategory',uni(DATA.明细.map(r=>r.欠款类别)));
   fill('fAge',['0-30','31-60','61-90','91-180','181-360','361以上']);
   fill('fRecharge',uni(DATA.明细.map(r=>r.充值类型)));
+  fill('fBiz',uni(DATA.明细.map(r=>r.业务类型)));
   const br=uni(DATA.明细.filter(r=>filters.region==='全部'||r.区域===filters.region).map(r=>r.分公司));
   fill('fBranch',br);
 }
@@ -306,7 +308,8 @@ function bind(){
   document.getElementById('fCategory').onchange=e=>{filters.category=e.target.value;page=1;refresh();};
   document.getElementById('fAge').onchange=e=>{filters.age=e.target.value;page=1;refresh();};
   document.getElementById('fRecharge').onchange=e=>{filters.recharge=e.target.value;page=1;refresh();};
-  document.getElementById('btnReset').onclick=()=>{filters={region:'全部',branch:'全部',category:'全部',age:'全部',recharge:'全部'};page=1;initSelects();refresh();};
+  document.getElementById('fBiz').onchange=e=>{filters.biz=e.target.value;page=1;refresh();};
+  document.getElementById('btnReset').onclick=()=>{filters={region:'全部',branch:'全部',category:'全部',age:'全部',recharge:'全部',biz:'全部'};page=1;initSelects();refresh();};
   document.getElementById('prevPage').onclick=()=>{if(page>1){page--;renderTable();}};
   document.getElementById('nextPage').onclick=()=>{page++;renderTable();};
 }
