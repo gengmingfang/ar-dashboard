@@ -123,7 +123,7 @@ tr:hover{background:#f8fafd}
     <div class="fgroup"><label>分公司</label><select id="fBranch"></select></div>
     <div class="fgroup"><label>欠款类别</label><select id="fCategory"></select></div>
     <div class="fgroup"><label>账龄段</label><select id="fAge"></select></div>
-    <div class="fgroup"><label>充值类型</label><select id="fRecharge"></select></div><div class="fgroup"><label>业务类型</label><select id="fBiz"></select></div><div class="fgroup" style="display:none"><label>销售员</label><select id="fSales"></select></div><div class="fgroup" style="display:none"><label>单位名称</label><select id="fUnit"></select></div>
+    <div class="fgroup"><label>充值类型</label><select id="fRecharge"></select></div><div class="fgroup"><label>业务类型</label><select id="fBiz"></select></div><div class="fgroup" style="display:none"><label>销售员</label><input id="fSales" placeholder="输入销售员筛选"></div><div class="fgroup" style="display:none"><label>单位名称</label><input id="fUnit" placeholder="输入单位名称筛选"></div>
     <button class="btn reset" id="btnReset">重置筛选</button>
   </div>
 
@@ -186,7 +186,7 @@ const FMT = new Intl.NumberFormat('zh-CN',{maximumFractionDigits:2});
 const FM = v => (v/10000).toFixed(2)+'万';
 const PALETTE=['#4c78a8','#f58518','#54a24b','#e45756','#72b7b2','#b279a2','#ff9da6','#9d755d','#bab0ac','#58508d','#bc5090','#ff6361'];
 
-let filters={region:'全部',branch:'全部',category:'全部',age:'全部',recharge:'全部',biz:'全部',sales:'全部',unit:'全部'};
+let filters={region:'全部',branch:'全部',category:'全部',age:'全部',recharge:'全部',biz:'全部',sales:'',unit:''};
 let page=1,PER=15,filtered=[];
 
 function applyFilter(){
@@ -199,8 +199,8 @@ function applyFilter(){
     }
     if(filters.recharge!=='全部'&&r.充值类型!==filters.recharge)return false;
     if(filters.biz!=='全部'&&r.业务类型!==filters.biz)return false;
-    if(filters.sales!=='全部'&&r.销售员!==filters.sales)return false;
-    if(filters.unit!=='全部'&&r.单位名称!==filters.unit)return false;
+    if(filters.sales&&r.销售员.indexOf(filters.sales)===-1)return false;
+    if(filters.unit&&r.单位名称.indexOf(filters.unit)===-1)return false;
     return true;
   });
 }
@@ -353,21 +353,12 @@ function initSelects(){
   fill('fAge',['0-30','31-60','61-90','91-180','181-360','361以上']);
   fill('fRecharge',uni(DATA.明细.map(r=>r.充值类型)));
   fill('fBiz',uni(DATA.明细.map(r=>r.业务类型)));
-  fill('fSales',uni(DATA.明细.map(r=>r.销售员)));
   fillUnits();
   const br=uni(DATA.明细.filter(r=>filters.region==='全部'||r.区域===filters.region).map(r=>r.分公司));
   fill('fBranch',br);
 }
 function fill(id,opts){document.getElementById(id).innerHTML=opts.map(o=>`<option value="${o}">${o}</option>`).join('');}
-function fillUnits(){
-  var rows=DATA.明细;
-  if(filters.region!=='全部')rows=rows.filter(function(r){return r.区域===filters.region;});
-  if(filters.branch!=='全部')rows=rows.filter(function(r){return r.分公司===filters.branch;});
-  var units=uni(rows.map(function(r){return r.单位名称;}));
-  var cur=document.getElementById('fUnit').value;
-  fill('fUnit',units);
-  if(units.indexOf(cur)===-1){filters.unit='全部';document.getElementById('fUnit').value='全部';}
-}
+function fillUnits(){}
 function bind(){
   document.getElementById('fRegion').onchange=e=>{filters.region=e.target.value;filters.branch='全部';page=1;
     const br=uni(DATA.明细.filter(r=>filters.region==='全部'||r.区域===filters.region).map(r=>r.分公司));
@@ -377,9 +368,9 @@ function bind(){
   document.getElementById('fAge').onchange=e=>{filters.age=e.target.value;page=1;refresh();};
   document.getElementById('fRecharge').onchange=e=>{filters.recharge=e.target.value;page=1;refresh();};
   document.getElementById('fBiz').onchange=e=>{filters.biz=e.target.value;page=1;refresh();};
-  document.getElementById('fSales').onchange=e=>{filters.sales=e.target.value;page=1;refresh();};
-  document.getElementById('fUnit').onchange=e=>{filters.unit=e.target.value;page=1;refresh();};
-  document.getElementById('btnReset').onclick=()=>{filters={region:'全部',branch:'全部',category:'全部',age:'全部',recharge:'全部',biz:'全部',sales:'全部',unit:'全部'};page=1;initSelects();refresh();};
+  document.getElementById('fSales').oninput=e=>{filters.sales=e.target.value.trim();page=1;refresh();};
+  document.getElementById('fUnit').oninput=e=>{filters.unit=e.target.value.trim();page=1;refresh();};
+  document.getElementById('btnReset').onclick=()=>{filters={region:'全部',branch:'全部',category:'全部',age:'全部',recharge:'全部',biz:'全部',sales:'',unit:''};page=1;document.getElementById('fSales').value='';document.getElementById('fUnit').value='';initSelects();refresh();};
   document.getElementById('prevPage').onclick=()=>{if(page>1){page--;renderTable();}};
   document.getElementById('nextPage').onclick=()=>{page++;renderTable();};
 }
